@@ -38,45 +38,45 @@ pub fn init_genesis<DB: Database>(
     db: Arc<DB>,
     chain: Arc<ChainSpec>,
 ) -> Result<H256, InitDatabaseError> {
-    let genesis = chain.genesis();
+    let genesis = chain.genesis(); // 读取genesis block
 
-    let hash = chain.genesis_hash();
+    let hash = chain.genesis_hash(); // 计算genesis block的hash
 
-    let tx = db.tx()?;
-    if let Some((_, db_hash)) = tx.cursor_read::<tables::CanonicalHeaders>()?.first()? {
-        if db_hash == hash {
+    let tx = db.tx()?;  // 获取tx的数据库对象
+    if let Some((_, db_hash)) = tx.cursor_read::<tables::CanonicalHeaders>()?.first()? { // 读取tx数据库的第一个条目返回
+        if db_hash == hash {   // 如果返回的值等于genesis_hash，则说明已经初始化过了，返回
             debug!("Genesis already written, skipping.");
             return Ok(hash)
         }
 
-        return Err(InitDatabaseError::GenesisHashMismatch {
+        return Err(InitDatabaseError::GenesisHashMismatch { // 如果读取不为空，但是返回值和genesis_hash不等，报错
             chainspec_hash: hash,
             database_hash: db_hash,
         })
     }
 
-    drop(tx);
+    drop(tx); // 释放tx对象
     debug!("Writing genesis block.");
 
     // use transaction to insert genesis header
-    let factory = ProviderFactory::new(&db, chain.clone());
-    let provider_rw = factory.provider_rw()?;
-    insert_genesis_hashes(&provider_rw, genesis)?;
-    insert_genesis_history(&provider_rw, genesis)?;
+    let factory = ProviderFactory::new(&db, chain.clone()); // 创建provider的工厂对象, provider就是数据库对象
+    let provider_rw = factory.provider_rw()?; // 通过factory生成对应的可以读写的数据库对象
+    insert_genesis_hashes(&provider_rw, genesis)?; // 更新数据库, 更新table HashedAccount和table HashedStorage
+    insert_genesis_history(&provider_rw, genesis)?;// 更新数据库, 更新table StorageHistory
     provider_rw.commit()?;
 
     // Insert header
     let tx = db.tx_mut()?;
-    insert_genesis_header::<DB>(&tx, chain.clone())?;
+    insert_genesis_header::<DB>(&tx, chain.clone())?; //存储genesis_header内容
 
-    insert_genesis_state::<DB>(&tx, genesis)?;
+    insert_genesis_state::<DB>(&tx, genesis)?; // 存储state数据库
 
-    // insert sync stage
+    // insert sync stage   // 将个各个stage放入数据库
     for stage in StageId::ALL.iter() {
         tx.put::<tables::SyncStage>(stage.to_string(), Default::default())?;
     }
 
-    tx.commit()?;
+    tx.commit()?;  //提交
     Ok(hash)
 }
 
@@ -122,7 +122,7 @@ pub fn insert_genesis_hashes<DB: Database>(
     // insert and hash accounts to hashing table
     let alloc_accounts =
         genesis.alloc.clone().into_iter().map(|(addr, account)| (addr, Some(account.into())));
-    provider.insert_account_for_hashing(alloc_accounts)?;
+    provider.insert_account_for_hashing(alloc_accounts)?;  // 更新table HashedAccount
 
     let alloc_storage = genesis.alloc.clone().into_iter().filter_map(|(addr, account)| {
         // only return Some if there is storage
@@ -133,7 +133,7 @@ pub fn insert_genesis_hashes<DB: Database>(
             )
         })
     });
-    provider.insert_storage_for_hashing(alloc_storage)?;
+    provider.insert_storage_for_hashing(alloc_storage)?; // 更新table HashedStorage
 
     Ok(())
 }

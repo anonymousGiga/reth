@@ -3,7 +3,7 @@
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-fn main() {
+fn main() { // 入口函数
     if let Err(err) = reth::cli::run() {
         eprintln!("Error: {err:?}");
         std::process::exit(1);

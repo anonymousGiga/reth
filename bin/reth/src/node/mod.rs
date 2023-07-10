@@ -172,25 +172,25 @@ impl Command {
         let db = Arc::new(init_db(&db_path, self.db.log_level)?);
         info!(target: "reth::cli", "Database opened");
 
-        self.start_metrics_endpoint(Arc::clone(&db)).await?;
+        self.start_metrics_endpoint(Arc::clone(&db)).await?; // 启动监控相关
 
         debug!(target: "reth::cli", chain=%self.chain.chain, genesis=?self.chain.genesis_hash(), "Initializing genesis");
 
-        let genesis_hash = init_genesis(db.clone(), self.chain.clone())?;
+        let genesis_hash = init_genesis(db.clone(), self.chain.clone())?;  // 初始化genesis
 
         info!(target: "reth::cli", "{}", DisplayHardforks::from(self.chain.hardforks().clone()));
 
-        let consensus: Arc<dyn Consensus> = if self.auto_mine {
+        let consensus: Arc<dyn Consensus> = if self.auto_mine {  //创建共识引擎
             debug!(target: "reth::cli", "Using auto seal");
-            Arc::new(AutoSealConsensus::new(Arc::clone(&self.chain)))
+            Arc::new(AutoSealConsensus::new(Arc::clone(&self.chain))) 
         } else {
             Arc::new(BeaconConsensus::new(Arc::clone(&self.chain)))
         };
 
-        self.init_trusted_nodes(&mut config);
+        self.init_trusted_nodes(&mut config); // 初始化网络的配置,主要是peer节点列表
 
         debug!(target: "reth::cli", "Spawning metrics listener task");
-        let (metrics_tx, metrics_rx) = unbounded_channel();
+        let (metrics_tx, metrics_rx) = unbounded_channel();  // 创建监控相关的mpsc channel
         let metrics_listener = MetricsListener::new(metrics_rx);
         ctx.task_executor.spawn_critical("metrics listener task", metrics_listener);
 
@@ -215,7 +215,7 @@ impl Command {
             .with_sync_metrics_tx(metrics_tx.clone()),
         );
 
-        // setup the blockchain provider
+        // setup the blockchain provider   // 创建交易池
         let factory = ProviderFactory::new(Arc::clone(&db), Arc::clone(&self.chain));
         let blockchain_db = BlockchainProvider::new(factory, blockchain_tree.clone())?;
 
@@ -230,7 +230,7 @@ impl Command {
         );
         info!(target: "reth::cli", "Transaction pool initialized");
 
-        // spawn txpool maintenance task
+        // spawn txpool maintenance task   // 交易池维护相关task
         {
             let pool = transaction_pool.clone();
             let chain_events = blockchain_db.canonical_state_stream();
@@ -246,7 +246,7 @@ impl Command {
             debug!(target: "reth::cli", "Spawned txpool maintenance task");
         }
 
-        info!(target: "reth::cli", "Connecting to P2P network");
+        info!(target: "reth::cli", "Connecting to P2P network"); // 启动网络相关
         let network_secret_path =
             self.network.p2p_secret_key.clone().unwrap_or_else(|| data_dir.p2p_secret_path());
         debug!(target: "reth::cli", ?network_secret_path, "Loading p2p key file");
@@ -275,7 +275,7 @@ impl Command {
 
         let (consensus_engine_tx, consensus_engine_rx) = unbounded_channel();
 
-        let payload_generator = BasicPayloadJobGenerator::new(
+        let payload_generator = BasicPayloadJobGenerator::new(   // 需要确认  ++++ block payload generator?
             blockchain_db.clone(),
             transaction_pool.clone(),
             ctx.task_executor.clone(),
@@ -300,7 +300,7 @@ impl Command {
             None
         };
 
-        // Configure the pipeline
+        // Configure the pipeline    // 构建和网络部分的管道
         let (mut pipeline, client) = if self.auto_mine {
             let (_, client, mut task) = AutoSealBuilder::new(
                 Arc::clone(&self.chain),
