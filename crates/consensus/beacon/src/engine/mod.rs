@@ -1426,7 +1426,7 @@ where
                     }
                     BeaconEngineMessage::NewPayload { payload, tx } => {
                         this.metrics.new_payload_messages.increment(1);
-                        let res = this.on_new_payload(payload);
+                        let res = this.on_new_payload(payload); 
                         let _ = tx.send(res);
                     }
                     BeaconEngineMessage::TransitionConfigurationExchanged => {

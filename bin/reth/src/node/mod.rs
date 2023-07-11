@@ -275,7 +275,7 @@ impl Command {
 
         let (consensus_engine_tx, consensus_engine_rx) = unbounded_channel();
 
-        let payload_generator = BasicPayloadJobGenerator::new(   // 需要确认  ++++ block payload generator?
+        let payload_generator = BasicPayloadJobGenerator::new(   // block 载荷生成器，简单理解就是生成区块时用来生成区块半成品和需要的信息
             blockchain_db.clone(),
             transaction_pool.clone(),
             ctx.task_executor.clone(),
@@ -287,8 +287,8 @@ impl Command {
                 .max_gas_limit(self.builder.max_gas_limit),
             Arc::clone(&self.chain),
         );
-        let (payload_service, payload_builder) = PayloadBuilderService::new(payload_generator);
-
+        let (payload_service, payload_builder) = PayloadBuilderService::new(payload_generator); 
+        // 上面这行： payload_builder用来外部给载荷生成服务发送指令，外部发送指令格式为PayloadServiceCommand，该指令中带有channel的发送端，用于传回payloadBuilderService的结果
         debug!(target: "reth::cli", "Spawning payload builder service");
         ctx.task_executor.spawn_critical("payload builder service", payload_service);
 
@@ -306,8 +306,8 @@ impl Command {
                 Arc::clone(&self.chain),
                 blockchain_db.clone(),
                 transaction_pool.clone(),
-                consensus_engine_tx.clone(),
-                canon_state_notification_sender,
+                consensus_engine_tx.clone(),   // 自己挖的区块通过这个管道发送给共识部分
+                canon_state_notification_sender,   
             )
             .build();
 
@@ -372,8 +372,8 @@ impl Command {
             payload_builder.clone(),
             initial_target,
             MIN_BLOCKS_FOR_PIPELINE_RUN,
-            consensus_engine_tx,
-            consensus_engine_rx,
+            consensus_engine_tx, 
+            consensus_engine_rx,   // Consensus通过这个channel接收数据（如区块）
         )?;
         info!(target: "reth::cli", "Consensus engine initialized");
 
