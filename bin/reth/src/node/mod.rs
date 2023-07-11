@@ -180,7 +180,7 @@ impl Command {
 
         info!(target: "reth::cli", "{}", DisplayHardforks::from(self.chain.hardforks().clone()));
 
-        let consensus: Arc<dyn Consensus> = if self.auto_mine {  //创建共识引擎
+        let consensus: Arc<dyn Consensus> = if self.auto_mine {  //创建共识trait对象，该对象提供验证区块头、验证难度、验证区块等功能
             debug!(target: "reth::cli", "Using auto seal");
             Arc::new(AutoSealConsensus::new(Arc::clone(&self.chain))) 
         } else {
