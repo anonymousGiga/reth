@@ -124,6 +124,9 @@ pub fn init_db<P: AsRef<Path>>(path: P, log_level: Option<LogLevel>) -> eyre::Re
     {
         let db = DatabaseEnv::open(rpath, EnvKind::RW, log_level)?;
         db.create_tables()?;
+
+        let s = db.inner.info().unwrap().map_size();
+        println!("map_size =============================== {:?}", s);
         Ok(db)
     }
     #[cfg(not(feature = "mdbx"))]

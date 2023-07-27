@@ -79,8 +79,11 @@ incremental = false
 # patched for quantity U256 responses <https://github.com/recmo/uint/issues/224>
 ruint = { git = "https://github.com/paradigmxyz/uint" }
 
-revm = { git = "https://github.com/bluealloy/revm/", branch = "release/v25" }
-revm-primitives = { git = "https://github.com/bluealloy/revm/", branch = "release/v25" }
+# revm = { git = "https://github.com/bluealloy/revm/", branch = "release/v25" }
+revm = { path = "/home/andy/Source/work/revm/crates/revm" }
+# revm-primitives = { git = "https://github.com/bluealloy/revm/", branch = "release/v25" }
+# revm-primitives = { path = "/home/andy/Source/work/revm/crates/primitives" }
+revm-primitives = { path = "../revm/crates/primitives" }
 
 [workspace.dependencies]
 ## reth
