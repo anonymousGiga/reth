@@ -325,7 +325,14 @@ where
         total_difficulty: U256,
         senders: Option<Vec<Address>>,
     ) -> Result<PostState, BlockExecutionError> {
+        // use tracing::info;
+        // info!(
+        //     target : "revm of reth", "enter execute_and_verify_receipt:  {:?}",
+        // block.header.number, );
         let post_state = self.execute(block, total_difficulty, senders)?;
+        // info!(
+        //     target : "revm of reth", "after execute ====================================== "
+        // );
 
         // TODO Before Byzantium, receipts contained state root that would mean that expensive
         // operation as hashing that is needed for state root got calculated in every

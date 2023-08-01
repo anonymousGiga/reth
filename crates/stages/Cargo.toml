@@ -44,6 +44,11 @@ itertools = "0.10.5"
 rayon = "1.6.0"
 num-traits = "0.2.15"
 
+# observability
+minitrace = "0.4.1"
+futures = "0.3.28"
+
+
 [dev-dependencies]
 # reth
 reth-primitives = { workspace = true, features = ["arbitrary"] }
@@ -76,3 +81,7 @@ test-utils = []
 name = "criterion"
 harness = false
 required-features = ["test-utils"]
+
+
+[profile.dev]
+debug = true
