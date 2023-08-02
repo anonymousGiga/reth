@@ -219,10 +219,14 @@ where
         total_difficulty: U256,
         senders: Option<Vec<Address>>,
     ) -> Result<(PostState, u64), BlockExecutionError> {
+        use tracing::info;
         // perf: do not execute empty blocks
         if block.body.is_empty() {
             return Ok((PostState::default(), 0))
         }
+        info!(
+            target : "revm crates", "Body is not empty, block nnumber = {:?}, mix_hash = {:?}", block.header.number, block.header,
+        );
         let senders = self.recover_senders(&block.body, senders)?;
 
         self.init_env(&block.header, total_difficulty);

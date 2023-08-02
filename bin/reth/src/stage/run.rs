@@ -110,6 +110,7 @@ impl Command {
         // Raise the fd limit of the process.
         // Does not do anything on windows.
         fdlimit::raise_fd_limit();
+        println!("commit: {:?}", self.commit);
 
         // add network name to data dir
         let data_dir = self.datadir.unwrap_or_chain_default(self.chain.chain);
@@ -226,6 +227,7 @@ impl Command {
         }
 
         let checkpoint = provider_rw.get_stage_checkpoint(exec_stage.id())?.unwrap_or_default();
+        println!("before execute stage, checkpoint: {:?}", checkpoint);
 
         let unwind_stage = unwind_stage.as_mut().unwrap_or(&mut exec_stage);
 
@@ -261,6 +263,11 @@ impl Command {
                 provider_rw.commit()?;
                 provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
             }
+        }
+
+        if self.commit {
+            provider_rw.commit()?;
+            println!("after execute stage, checkpoint: {:?}", input.checkpoint);
         }
 
         Ok(())
