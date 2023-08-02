@@ -39,3 +39,7 @@ db-tools/
 
 # Coverage report
 lcov.info
+
+# For test
+test-output/
+
