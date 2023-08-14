@@ -139,7 +139,7 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
         let mut txs_number: usize = 0;
         let mut gas_used_in_m = 0.0f64;
         let mut cnt = 0;
-        const N: u64 = 10;
+        const N: u64 = 1000;
         let mut start_time = SystemTime::now();
         let mut delta = 0u128;
 
@@ -171,6 +171,7 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
                     }
                 }
                 txs_number = block.body.len();
+                println!("block_number = {:?}", block_number);
             } else {
                 txs_number += block.body.len();
             }
