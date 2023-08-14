@@ -21,8 +21,13 @@ use reth_provider::{
     post_state::PostState, BlockExecutor, BlockReader, DatabaseProviderRW, ExecutorFactory,
     HeaderProvider, LatestStateProviderRef, ProviderError,
 };
-use std::{ops::RangeInclusive, time::Instant};
+use std::{
+    ops::{Mul, RangeInclusive},
+    time::Instant,
+};
 use tracing::*;
+
+use std::time::SystemTime;
 
 /// The execution stage executes all transactions and
 /// update history indexes.
@@ -131,6 +136,13 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
         let mut state = PostState::default();
         state.add_prune_modes(prune_modes);
 
+        let mut txs_number: usize = 0;
+        let mut gas_used_in_m = 0.0f64;
+        let mut cnt = 0;
+        const N: u64 = 10;
+        let mut start_time = SystemTime::now();
+        let mut delta = 0u128;
+
         for block_number in start_block..=max_block {
             let td = provider
                 .header_td_by_number(block_number)?
@@ -138,6 +150,30 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
             let block = provider
                 .block_with_senders(block_number)?
                 .ok_or_else(|| ProviderError::BlockNotFound(block_number.into()))?;
+
+            if cnt % N == 0 {
+                if cnt == 0 {
+                    start_time = SystemTime::now();
+                } else {
+                    let end_time = SystemTime::now();
+
+                    match end_time.duration_since(start_time) {
+                        Ok(duration) => {
+                            let nanoseconds = duration.as_nanos();
+                            let tps = (txs_number * 1000_000_000) as u128 / nanoseconds;
+                            println!("tps = {:?}", tps);
+                            start_time = end_time;
+                            delta = nanoseconds;
+                        }
+                        Err(err) => {
+                            println!("Failed to calculate time difference: {}", err);
+                        }
+                    }
+                }
+                txs_number = block.body.len();
+            } else {
+                txs_number += block.body.len();
+            }
 
             // Configure the executor to use the current state.
             trace!(target: "sync::stages::execution", number = block_number, txs = block.body.len(), "Executing block");
@@ -156,6 +192,22 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
                 let _ =
                     metrics_tx.send(MetricEvent::ExecutionStageGas { gas: block.header.gas_used });
             }
+
+            if cnt % N == 0 {
+                if cnt != 0 {
+                    println!(
+                        "MGas/s = {:?}",
+                        gas_used_in_m.mul(1000_000_000 as f64) / delta as f64
+                    );
+                }
+                gas_used_in_m =
+                    block.header.gas_used as f64 / reth_primitives::constants::MGAS_TO_GAS as f64;
+            } else {
+                gas_used_in_m +=
+                    block.header.gas_used as f64 / reth_primitives::constants::MGAS_TO_GAS as f64;
+            }
+
+            cnt += 1;
 
             // Merge state changes
             state.extend(block_state);
