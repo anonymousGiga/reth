@@ -23,7 +23,10 @@ use reth_stages::{
     ExecInput, ExecOutput, PipelineError, Stage, UnwindInput,
 };
 use std::{any::Any, net::SocketAddr, path::PathBuf, sync::Arc};
-use tracing::*;
+// use tracing::*;
+
+use futures::executor::block_on;
+use minitrace::prelude::*;
 
 /// `reth stage` command
 #[derive(Debug, Parser)]
@@ -116,20 +119,20 @@ impl Command {
         let config_path = self.config.clone().unwrap_or(data_dir.config_path());
 
         let config: Config = confy::load_path(config_path).unwrap_or_default();
-        info!(target: "reth::cli", "reth {} starting stage {:?}", SHORT_VERSION, self.stage);
+        // info!(target: "reth::cli", "reth {} starting stage {:?}", SHORT_VERSION, self.stage);
 
         // use the overridden db path if specified
         let db_path = data_dir.db_path();
 
-        info!(target: "reth::cli", path = ?db_path, "Opening database");
+        // info!(target: "reth::cli", path = ?db_path, "Opening database");
         let db = Arc::new(init_db(db_path, self.db.log_level)?);
-        info!(target: "reth::cli", "Database opened");
+        // info!(target: "reth::cli", "Database opened");
 
         let factory = ProviderFactory::new(&db, self.chain.clone());
         let mut provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
 
         if let Some(listen_addr) = self.metrics {
-            info!(target: "reth::cli", "Starting metrics endpoint at {}", listen_addr);
+            // info!(target: "reth::cli", "Starting metrics endpoint at {}", listen_addr);
             prometheus_exporter::initialize(
                 listen_addr,
                 Arc::clone(&db),
@@ -227,48 +230,65 @@ impl Command {
             assert!(exec_stage.type_id() == unwind_stage.type_id());
         }
 
-        let checkpoint = provider_rw.get_stage_checkpoint(exec_stage.id())?.unwrap_or_default();
+        let (root, collector) = Span::root("root1");
+        {
+            let _guard = Span::enter_with_parent("get_checkpoint", &root);
+            let checkpoint = provider_rw.get_stage_checkpoint(exec_stage.id())?.unwrap_or_default();
 
-        let unwind_stage = unwind_stage.as_mut().unwrap_or(&mut exec_stage);
+            let unwind_stage = unwind_stage.as_mut().unwrap_or(&mut exec_stage);
 
-        let mut unwind = UnwindInput {
-            checkpoint: checkpoint.with_block_number(self.to),
-            unwind_to: self.from,
-            bad_block: None,
-        };
+            let mut unwind = UnwindInput {
+                checkpoint: checkpoint.with_block_number(self.to),
+                unwind_to: self.from,
+                bad_block: None,
+            };
 
-        if !self.skip_unwind {
-            while unwind.checkpoint.block_number > self.from {
-                let unwind_output = unwind_stage.unwind(&provider_rw, unwind).await?;
-                unwind.checkpoint = unwind_output.checkpoint;
+            let _guard = Span::enter_with_parent("unwind", &root);
+            if !self.skip_unwind {
+                while unwind.checkpoint.block_number > self.from {
+                    let unwind_output = unwind_stage.unwind(&provider_rw, unwind).await?;
+                    unwind.checkpoint = unwind_output.checkpoint;
+
+                    if self.commit {
+                        provider_rw.commit()?;
+                        provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
+                    }
+                }
+            }
+            let mut input = ExecInput {
+                target: Some(self.to),
+                checkpoint: Some(checkpoint.with_block_number(self.from)),
+            };
+
+            let _guard = Span::enter_with_parent("execute", &root);
+            while let ExecOutput { checkpoint: stage_progress, done: false } =
+                exec_stage.execute(&provider_rw, input).await?
+            {
+                input.checkpoint = Some(stage_progress);
 
                 if self.commit {
                     provider_rw.commit()?;
                     provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
                 }
             }
-        }
 
-        let mut input = ExecInput {
-            target: Some(self.to),
-            checkpoint: Some(checkpoint.with_block_number(self.from)),
-        };
-
-        while let ExecOutput { checkpoint: stage_progress, done: false } =
-            exec_stage.execute(&provider_rw, input).await?
-        {
-            input.checkpoint = Some(stage_progress);
-
+            let _guard = Span::enter_with_parent("commit", &root);
             if self.commit {
                 provider_rw.commit()?;
-                provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
             }
         }
 
-        if self.commit {
-            provider_rw.commit()?;
-        }
+        drop(root);
+        let records: Vec<SpanRecord> = block_on(collector.collect());
+        print_span_time(&records);
 
         Ok(())
+    }
+}
+
+fn print_span_time(span_records: &[SpanRecord]) {
+    use tracing::info;
+    for v in span_records {
+        info!(target: "sync::stages::execution", "event = {}, time_in_ns = {}", v.event, v.duration_ns);
     }
 }

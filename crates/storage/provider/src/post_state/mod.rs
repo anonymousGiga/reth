@@ -22,6 +22,8 @@ pub use account::AccountChanges;
 mod storage;
 pub use storage::{Storage, StorageChanges, StorageChangeset, StorageTransition, StorageWipe};
 
+use minitrace::prelude::*;
+
 // todo: rewrite all the docs for this
 /// The state of accounts after execution of one or more transactions, including receipts and new
 /// bytecode.
@@ -596,6 +598,7 @@ impl PostState {
     }
 
     /// Write the post state to the database.
+    #[trace]
     pub fn write_to_db<'a, TX: DbTxMut<'a> + DbTx<'a>>(
         mut self,
         tx: &TX,

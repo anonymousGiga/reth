@@ -22,7 +22,10 @@ use reth_provider::{
     HeaderProvider, LatestStateProviderRef, ProviderError,
 };
 use std::{ops::RangeInclusive, time::Instant};
-use tracing::*;
+use tracing::trace as trace1;
+
+use futures::executor::block_on;
+use minitrace::prelude::*;
 
 /// The execution stage executes all transactions and
 /// update history indexes.
@@ -67,6 +70,13 @@ pub struct ExecutionStage<EF: ExecutorFactory> {
     external_clean_threshold: u64,
     /// Pruning configuration.
     prune_modes: PruneModes,
+}
+
+fn print_span_time(span_records: &[SpanRecord]) {
+    use tracing::info;
+    for v in span_records {
+        info!(target: "sync::stages::execution", "event = {}, time_in_ns = {}", v.event, v.duration_ns);
+    }
 }
 
 impl<EF: ExecutorFactory> ExecutionStage<EF> {
@@ -131,49 +141,60 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
         let mut state = PostState::default();
         state.add_prune_modes(prune_modes);
 
-        for block_number in start_block..=max_block {
-            let td = provider
-                .header_td_by_number(block_number)?
-                .ok_or_else(|| ProviderError::HeaderNotFound(block_number.into()))?;
-            let block = provider
-                .block_with_senders(block_number)?
-                .ok_or_else(|| ProviderError::BlockNotFound(block_number.into()))?;
+        let (root, collector) = Span::root("root");
+        {
+            let _guard = root.set_local_parent();
+            for block_number in start_block..=max_block {
+                let td = provider
+                    .header_td_by_number(block_number)?
+                    .ok_or_else(|| ProviderError::HeaderNotFound(block_number.into()))?;
+                let block = provider
+                    .block_with_senders(block_number)?
+                    .ok_or_else(|| ProviderError::BlockNotFound(block_number.into()))?;
 
-            // Configure the executor to use the current state.
-            trace!(target: "sync::stages::execution", number = block_number, txs = block.body.len(), "Executing block");
+                // Configure the executor to use the current state.
+                trace1!(target: "sync::stages::execution", number = block_number, txs = block.body.len(), "Executing block");
 
-            // Execute the block
-            let (block, senders) = block.into_components();
-            let block_state = executor
-                .execute_and_verify_receipt(&block, td, Some(senders))
-                .map_err(|error| StageError::ExecutionError {
-                    block: block.header.clone().seal_slow(),
-                    error,
-                })?;
+                // Execute the block
+                let (block, senders) = block.into_components();
+                let block_state = executor
+                    .execute_and_verify_receipt(&block, td, Some(senders))
+                    .map_err(|error| StageError::ExecutionError {
+                        block: block.header.clone().seal_slow(),
+                        error,
+                    })?;
 
-            // Gas metrics
-            if let Some(metrics_tx) = &mut self.metrics_tx {
-                let _ =
-                    metrics_tx.send(MetricEvent::ExecutionStageGas { gas: block.header.gas_used });
+                // Gas metrics
+                if let Some(metrics_tx) = &mut self.metrics_tx {
+                    let _ = metrics_tx
+                        .send(MetricEvent::ExecutionStageGas { gas: block.header.gas_used });
+                }
+
+                // Merge state changes
+                state.extend(block_state);
+                stage_progress = block_number;
+                stage_checkpoint.progress.processed += block.gas_used;
+
+                // Check if we should commit now
+                if self
+                    .thresholds
+                    .is_end_of_batch(block_number - start_block, state.size_hint() as u64)
+                {
+                    break
+                }
             }
 
-            // Merge state changes
-            state.extend(block_state);
-            stage_progress = block_number;
-            stage_checkpoint.progress.processed += block.gas_used;
-
-            // Check if we should commit now
-            if self.thresholds.is_end_of_batch(block_number - start_block, state.size_hint() as u64)
-            {
-                break
-            }
+            let _guard = root.set_local_parent();
+            // Write remaining changes
+            trace1!(target: "sync::stages::execution", accounts = state.accounts().len(), "Writing updated state to database");
+            let start = Instant::now();
+            state.write_to_db(provider.tx_ref(), max_block)?;
+            trace1!(target: "sync::stages::execution", took = ?start.elapsed(), "Wrote state");
         }
 
-        // Write remaining changes
-        trace!(target: "sync::stages::execution", accounts = state.accounts().len(), "Writing updated state to database");
-        let start = Instant::now();
-        state.write_to_db(provider.tx_ref(), max_block)?;
-        trace!(target: "sync::stages::execution", took = ?start.elapsed(), "Wrote state");
+        drop(root);
+        let records: Vec<SpanRecord> = block_on(collector.collect());
+        print_span_time(&records);
 
         let done = stage_progress == max_block;
         Ok(ExecOutput {
@@ -293,7 +314,7 @@ fn calculate_gas_used_from_headers<DB: Database>(
     }
 
     let duration = start.elapsed();
-    trace!(target: "sync::stages::execution", ?range, ?duration, "Time elapsed in calculate_gas_used_from_headers");
+    trace1!(target: "sync::stages::execution", ?range, ?duration, "Time elapsed in calculate_gas_used_from_headers");
 
     Ok(gas_total)
 }

@@ -33,6 +33,9 @@ parking_lot = "0.12"
 # test-utils
 reth-rlp = { workspace = true, optional = true }
 
+# observability
+minitrace = "0.4.1"
+
 [dev-dependencies]
 reth-db = { path = "../db", features = ["test-utils"] }
 reth-primitives = { workspace = true, features = ["arbitrary", "test-utils"] }

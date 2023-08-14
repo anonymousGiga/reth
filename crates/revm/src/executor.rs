@@ -26,6 +26,8 @@ use std::{
     sync::Arc,
 };
 
+use minitrace::prelude::*;
+
 /// Main block executor
 pub struct Executor<DB>
 where
@@ -319,6 +321,7 @@ where
         self.apply_post_block_changes(block, total_difficulty, post_state)
     }
 
+    #[trace]
     fn execute_and_verify_receipt(
         &mut self,
         block: &Block,

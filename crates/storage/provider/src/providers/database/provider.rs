@@ -46,6 +46,8 @@ use std::{
     sync::Arc,
 };
 
+use minitrace::prelude::*;
+
 /// A [`DatabaseProvider`] that holds a read-only database transaction.
 pub type DatabaseProviderRO<'this, DB> = DatabaseProvider<'this, <DB as DatabaseGAT<'this>>::TX>;
 
@@ -843,6 +845,7 @@ impl<'this, TX: DbTx<'this>> HeaderProvider for DatabaseProvider<'this, TX> {
         }
     }
 
+    #[trace]
     fn header_td_by_number(&self, number: BlockNumber) -> Result<Option<U256>> {
         if let Some(td) = self.chain_spec.final_paris_total_difficulty(number) {
             // if this block is higher than the final paris(merge) block, return the final paris
@@ -984,6 +987,7 @@ impl<'this, TX: DbTx<'this>> BlockReader for DatabaseProvider<'this, TX> {
     /// spot, and we want fast querying.**
     ///
     /// Returns `None` if block is not found.
+    #[trace]
     fn block_with_senders(&self, block_number: BlockNumber) -> Result<Option<BlockWithSenders>> {
         let header = self
             .header_by_number(block_number)?
