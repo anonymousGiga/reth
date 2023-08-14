@@ -75,7 +75,7 @@ pub struct ExecutionStage<EF: ExecutorFactory> {
 fn print_span_time(span_records: &[SpanRecord]) {
     use tracing::info;
     for v in span_records {
-        info!(target: "sync::stages::execution", "event = {}, time_in_ns = {}", v.event, v.duration_ns);
+        info!(target: "sync::stages::execution", "event = {}, begin_unix_time_in_ns = {}, time_in_ns = {}", v.event, v.begin_unix_time_ns, v.duration_ns);
     }
 }
 
