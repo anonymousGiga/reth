@@ -232,8 +232,10 @@ impl Command {
 
         let (root, collector) = Span::root("root1");
         {
-            let _guard = Span::enter_with_parent("get_checkpoint", &root);
-            let checkpoint = provider_rw.get_stage_checkpoint(exec_stage.id())?.unwrap_or_default();
+            let checkpoint = {
+                let _guard = Span::enter_with_parent("get_checkpoint", &root);
+                provider_rw.get_stage_checkpoint(exec_stage.id())?.unwrap_or_default()
+            };
 
             let unwind_stage = unwind_stage.as_mut().unwrap_or(&mut exec_stage);
 
@@ -243,8 +245,8 @@ impl Command {
                 bad_block: None,
             };
 
-            let _guard = Span::enter_with_parent("unwind", &root);
             if !self.skip_unwind {
+                let _guard = Span::enter_with_parent("unwind++", &root);
                 while unwind.checkpoint.block_number > self.from {
                     let unwind_output = unwind_stage.unwind(&provider_rw, unwind).await?;
                     unwind.checkpoint = unwind_output.checkpoint;
@@ -255,25 +257,28 @@ impl Command {
                     }
                 }
             }
+
             let mut input = ExecInput {
                 target: Some(self.to),
                 checkpoint: Some(checkpoint.with_block_number(self.from)),
             };
 
-            let _guard = Span::enter_with_parent("execute", &root);
-            while let ExecOutput { checkpoint: stage_progress, done: false } =
-                exec_stage.execute(&provider_rw, input).await?
             {
-                input.checkpoint = Some(stage_progress);
+                let _guard = Span::enter_with_parent("execute", &root);
+                while let ExecOutput { checkpoint: stage_progress, done: false } =
+                    exec_stage.execute(&provider_rw, input).await?
+                {
+                    input.checkpoint = Some(stage_progress);
 
-                if self.commit {
-                    provider_rw.commit()?;
-                    provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
+                    if self.commit {
+                        provider_rw.commit()?;
+                        provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
+                    }
                 }
             }
 
-            let _guard = Span::enter_with_parent("commit", &root);
             if self.commit {
+                let _guard = Span::enter_with_parent("commit", &root);
                 provider_rw.commit()?;
             }
         }
