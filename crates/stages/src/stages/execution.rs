@@ -141,10 +141,10 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
         let mut state = PostState::default();
         state.add_prune_modes(prune_modes);
 
-        let (root, collector) = Span::root("root");
-        {
-            let _guard = root.set_local_parent();
-            for block_number in start_block..=max_block {
+        for block_number in start_block..=max_block {
+            let (root, collector) = Span::root("root");
+            {
+                let _guard = root.set_local_parent();
                 let td = provider
                     .header_td_by_number(block_number)?
                     .ok_or_else(|| ProviderError::HeaderNotFound(block_number.into()))?;
@@ -184,17 +184,23 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
                 }
             }
 
+            drop(root);
+            let records: Vec<SpanRecord> = block_on(collector.collect());
+            print_span_time(&records);
+        }
+
+        let (root, collector) = Span::root("root1");
+        {
             let _guard = root.set_local_parent();
             // Write remaining changes
             trace1!(target: "sync::stages::execution", accounts = state.accounts().len(), "Writing updated state to database");
             let start = Instant::now();
             state.write_to_db(provider.tx_ref(), max_block)?;
             trace1!(target: "sync::stages::execution", took = ?start.elapsed(), "Wrote state");
+            drop(root);
+            let records: Vec<SpanRecord> = block_on(collector.collect());
+            print_span_time(&records);
         }
-
-        drop(root);
-        let records: Vec<SpanRecord> = block_on(collector.collect());
-        print_span_time(&records);
 
         let done = stage_progress == max_block;
         Ok(ExecOutput {
