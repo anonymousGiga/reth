@@ -24,6 +24,7 @@ use reth_stages::{
 };
 use std::{any::Any, net::SocketAddr, path::PathBuf, sync::Arc};
 use tracing::*;
+use std::time::Instant;
 
 /// `reth stage` command
 #[derive(Debug, Parser)]
@@ -237,6 +238,7 @@ impl Command {
             bad_block: None,
         };
 
+        let start = Instant::now();
         if !self.skip_unwind {
             while unwind.checkpoint.block_number > self.from {
                 let unwind_output = unwind_stage.unwind(&provider_rw, unwind).await?;
@@ -248,6 +250,7 @@ impl Command {
                 }
             }
         }
+        println!("unwind time = {:?}", start.elapsed());
 
         let mut input = ExecInput {
             target: Some(self.to),

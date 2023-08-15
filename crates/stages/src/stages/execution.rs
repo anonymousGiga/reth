@@ -24,6 +24,11 @@ use reth_provider::{
 use std::{ops::RangeInclusive, time::Instant};
 use tracing::*;
 
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+};
+
 /// The execution stage executes all transactions and
 /// update history indexes.
 ///
@@ -67,6 +72,31 @@ pub struct ExecutionStage<EF: ExecutorFactory> {
     external_clean_threshold: u64,
     /// Pruning configuration.
     prune_modes: PruneModes,
+}
+
+#[inline(always)]
+fn rdtsc() -> u64 {
+    unsafe { core::arch::x86_64::_rdtsc() }
+}
+
+fn get_cpu_frequency() -> Option<f64> {
+    let file = File::open("/proc/cpuinfo").unwrap();
+    let reader = BufReader::new(file);
+
+    for line in reader.lines() {
+        let line = line.unwrap();
+        if let Some(freq_str) = line.strip_prefix("cpu MHz\t\t: ") {
+            let frequency: f64 = freq_str.parse().unwrap();
+            return Some(frequency * 1e6)
+        }
+    }
+
+    None
+}
+
+fn cycles_to_nanoseconds(cycles: u64, frequency: f64) -> u64 {
+    let ns_per_cycle = 1_000_000_000 as f64 / frequency;
+    (cycles as f64 * ns_per_cycle) as u64
 }
 
 impl<EF: ExecutorFactory> ExecutionStage<EF> {
@@ -131,13 +161,20 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
         let mut state = PostState::default();
         state.add_prune_modes(prune_modes);
 
+        let fre = get_cpu_frequency().unwrap();
+
         for block_number in start_block..=max_block {
+            let start = rdtsc();
             let td = provider
                 .header_td_by_number(block_number)?
                 .ok_or_else(|| ProviderError::HeaderNotFound(block_number.into()))?;
             let block = provider
                 .block_with_senders(block_number)?
                 .ok_or_else(|| ProviderError::BlockNotFound(block_number.into()))?;
+            let end = rdtsc();
+            let cycles = end - start;
+            let elapsed_ns = cycles_to_nanoseconds(cycles, fre);
+            println!("{:?}, {:?}", block_number, elapsed_ns);
 
             // Configure the executor to use the current state.
             trace!(target: "sync::stages::execution", number = block_number, txs = block.body.len(), "Executing block");
@@ -172,7 +209,12 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
         // Write remaining changes
         trace!(target: "sync::stages::execution", accounts = state.accounts().len(), "Writing updated state to database");
         let start = Instant::now();
+        let start1 = rdtsc();
         state.write_to_db(provider.tx_ref(), max_block)?;
+        let end1 = rdtsc();
+        let cycles = end1 - start1;
+        let elapsed_ns = cycles_to_nanoseconds(cycles, fre);
+        println!("write_db: {:?}", elapsed_ns);
         trace!(target: "sync::stages::execution", took = ?start.elapsed(), "Wrote state");
 
         let done = stage_progress == max_block;
