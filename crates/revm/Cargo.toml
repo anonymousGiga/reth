@@ -47,4 +47,7 @@ enable_execute_measure = [
     "perf-metrics/enable_execute_measure",
     "revm/enable_transact_measure",
 ]
+enable_static_call_measure = [
+    "revm/enable_static_call_measure",
+]
 

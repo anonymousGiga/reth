@@ -224,6 +224,10 @@ impl<EF: ExecutorFactory> ExecutionStage<EF> {
                 break
             }
         }
+        println!("trace print +++++++++++++++++++++++++++++++++++ ");
+        #[cfg(feature = "enable_static_call_measure")]
+        revm_utils::time_utils::time_trace::trace_print();
+
         #[cfg(feature = "open_performance_dashboard")]
         perf_metrics::record_after_loop();
 

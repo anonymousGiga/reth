@@ -188,6 +188,11 @@ enable_write_to_db_measure = [
     "reth-stages/enable_write_to_db_measure",
     "open_performance_dashboard",
 ]
+enable_static_call_measure = [
+    "reth-revm/enable_static_call_measure",
+    "reth-stages/enable_static_call_measure",
+]
+
 
 [build-dependencies]
 vergen = { version = "8.0.0", features = ["build", "cargo", "git", "gitcl"] }
