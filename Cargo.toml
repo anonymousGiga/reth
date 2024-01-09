@@ -138,8 +138,8 @@ reth-transaction-pool = { path = "crates/transaction-pool" }
 reth-trie = { path = "crates/trie" }
 
 # revm
-revm = { git = "https://github.com/megaeth-labs/revm", branch = "andy/dev/call",  features = ["std", "secp256k1"], default-features = false }
-revm-primitives = { git = "https://github.com/megaeth-labs/revm", branch = "andy/dev/call", features = ["std"], default-features = false }
+revm = { git = "https://github.com/megaeth-labs/revm", branch = "andy/dev/call2",  features = ["std", "secp256k1"], default-features = false }
+revm-primitives = { git = "https://github.com/megaeth-labs/revm", branch = "andy/dev/call2", features = ["std"], default-features = false }
 # revm = { path = "/home/andy/Source/work/revm/crates/revm",  features = ["std", "secp256k1"], default-features = false }
 # revm-primitives = { path = "/home/andy/Source/work/revm/crates/primitives", features = ["std"], default-features = false }
 
@@ -227,5 +227,5 @@ serial_test = "2"
 
 ## support perf test
 perf-metrics = { path = "./crates/perf-metrics"}
-revm-utils = { git = "https://github.com/megaeth-labs/revm", branch = "andy/dev/call"}
+revm-utils = { git = "https://github.com/megaeth-labs/revm", branch = "andy/dev/call2"}
 # revm-utils = { path = "/home/andy/Source/work/revm/crates/utils"}
