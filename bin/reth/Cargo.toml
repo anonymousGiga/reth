@@ -60,7 +60,6 @@ reth-node-optimism = { workspace = true, optional = true, features = [
 ] }
 reth-node-core.workspace = true
 
-revm-utils = { workspace = true, optional = true }
 revm = { workspace = true, optional = true}
 
 # crypto

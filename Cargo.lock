@@ -3392,7 +3392,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.5",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -4967,6 +4967,7 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 [[package]]
 name = "perf-metrics"
 version = "0.1.0"
+source = "git+https://github.com/megaeth-labs/reth-perf-utils.git#13221cc734448319121bf334c9465f24abe3c2e2"
 dependencies = [
  "ctor 0.2.6",
  "minstant",
@@ -5814,7 +5815,6 @@ dependencies = [
  "reth-trie",
  "revm",
  "revm-inspectors",
- "revm-utils",
  "secp256k1 0.27.0",
  "serde",
  "serde_json",
@@ -7083,7 +7083,7 @@ dependencies = [
 [[package]]
 name = "revm"
 version = "6.0.0"
-source = "git+https://github.com/megaeth-labs/revm.git?branch=andy/dev/perf-for-v6.0.0#388c0b1bfc5ec88022ff17ab11fc4e23cffd9874"
+source = "git+https://github.com/megaeth-labs/revm.git?branch=andy/debug/make-utils-independent#f512da0dd8c87bb10f02148bf394d7263ee45499"
 dependencies = [
  "auto_impl",
  "cfg-if",
@@ -7098,7 +7098,7 @@ dependencies = [
 [[package]]
 name = "revm-inspectors"
 version = "0.1.0"
-source = "git+https://github.com/megaeth-labs/evm-inspectors.git?branch=match-revm-6.0.0#52c7a76e9107e9cb74912cf265f23dcbffd8e97a"
+source = "git+https://github.com/megaeth-labs/evm-inspectors.git?branch=make-utils-independent#6d447c3c6368bcf7635662ca543c87f1556e597d"
 dependencies = [
  "alloy-primitives",
  "alloy-rpc-trace-types",
@@ -7117,7 +7117,7 @@ dependencies = [
 [[package]]
 name = "revm-interpreter"
 version = "3.0.0"
-source = "git+https://github.com/megaeth-labs/revm.git?branch=andy/dev/perf-for-v6.0.0#388c0b1bfc5ec88022ff17ab11fc4e23cffd9874"
+source = "git+https://github.com/megaeth-labs/revm.git?branch=andy/debug/make-utils-independent#f512da0dd8c87bb10f02148bf394d7263ee45499"
 dependencies = [
  "revm-primitives",
  "revm-utils",
@@ -7127,7 +7127,7 @@ dependencies = [
 [[package]]
 name = "revm-precompile"
 version = "4.0.1"
-source = "git+https://github.com/megaeth-labs/revm.git?branch=andy/dev/perf-for-v6.0.0#388c0b1bfc5ec88022ff17ab11fc4e23cffd9874"
+source = "git+https://github.com/megaeth-labs/revm.git?branch=andy/debug/make-utils-independent#f512da0dd8c87bb10f02148bf394d7263ee45499"
 dependencies = [
  "aurora-engine-modexp",
  "blst",
@@ -7144,7 +7144,7 @@ dependencies = [
 [[package]]
 name = "revm-primitives"
 version = "2.0.1"
-source = "git+https://github.com/megaeth-labs/revm.git?branch=andy/dev/perf-for-v6.0.0#388c0b1bfc5ec88022ff17ab11fc4e23cffd9874"
+source = "git+https://github.com/megaeth-labs/revm.git?branch=andy/debug/make-utils-independent#f512da0dd8c87bb10f02148bf394d7263ee45499"
 dependencies = [
  "alloy-primitives",
  "auto_impl",
@@ -7165,7 +7165,7 @@ dependencies = [
 [[package]]
 name = "revm-utils"
 version = "0.1.0"
-source = "git+https://github.com/megaeth-labs/revm.git?branch=andy/dev/perf-for-v6.0.0#388c0b1bfc5ec88022ff17ab11fc4e23cffd9874"
+source = "git+https://github.com/megaeth-labs/reth-perf-utils.git#13221cc734448319121bf334c9465f24abe3c2e2"
 dependencies = [
  "allocator-api2",
  "ctor 0.2.6",
