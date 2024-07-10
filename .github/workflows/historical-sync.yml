@@ -49,9 +49,9 @@ jobs:
             cd reth/testing/it-test/github-action
             ./setup.sh
 
-      ## Run private testnet 
-      #- name: Run testnet 
-      #  run: |
-      #      pwd
-      #      cd reth/testing/it-test/github-action
-      #      ./action.sh
+      # Run private testnet 
+      - name: Run testnet 
+        run: |
+            pwd
+            cd reth/testing/it-test/github-action
+            ./action.sh
