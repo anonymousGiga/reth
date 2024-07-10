@@ -21,25 +21,26 @@ cd eth2-val-tools && \
 git reset --hard 0d6d1ddb36479e73d7d876b29ac2d10ab3988e85 && \
 go build -o eth2-val-tools main.go && \
 cp eth2-val-tools ~/.cargo/bin && \
-eth2-val-tools --help && \
-
-cd ../ && \
-
-# Install eth2-testnet-genesis
-#git clone  https://github.com/protolambda/eth2-testnet-genesis.git && \
-cd eth2-testnet-genesis && \
-git reset --hard 4b3498476f14b872b43080eee319adea45286daf && \
-make && \
-cp eth2-testnet-genesis ~/.cargo/bin && \
-eth2-testnet-genesis --help && \
-
-cd ../ &&\
-
-# Install lighthouse 
-#wget  https://github.com/sigp/lighthouse/releases/download/v5.2.1/lighthouse-v5.2.1-x86_64-unknown-linux-gnu.tar.gz && \
-tar -zxvf lighthouse-v5.2.1-x86_64-unknown-linux-gnu.tar.gz && \
-cp lighthouse  ~/.cargo/bin && \
-lighthouse --version  
+eth2-val-tools --help 
+#eth2-val-tools --help && \
+#
+#cd ../ && \
+#
+## Install eth2-testnet-genesis
+##git clone  https://github.com/protolambda/eth2-testnet-genesis.git && \
+#cd eth2-testnet-genesis && \
+#git reset --hard 4b3498476f14b872b43080eee319adea45286daf && \
+#make && \
+#cp eth2-testnet-genesis ~/.cargo/bin && \
+#eth2-testnet-genesis --help && \
+#
+#cd ../ &&\
+#
+## Install lighthouse 
+##wget  https://github.com/sigp/lighthouse/releases/download/v5.2.1/lighthouse-v5.2.1-x86_64-unknown-linux-gnu.tar.gz && \
+#tar -zxvf lighthouse-v5.2.1-x86_64-unknown-linux-gnu.tar.gz && \
+#cp lighthouse  ~/.cargo/bin && \
+#lighthouse --version  
 
 
 ## Install reth
