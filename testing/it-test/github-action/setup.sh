@@ -20,8 +20,9 @@ cp jwt $BASE_DIR -rf && \
 cd eth2-val-tools && \
 git reset --hard 0d6d1ddb36479e73d7d876b29ac2d10ab3988e85 && \
 go build -o eth2-val-tools main.go && \
-cp eth2-val-tools ~/.cargo/bin && \
-eth2-val-tools --help 
+ls
+#cp eth2-val-tools ~/.cargo/bin && \
+#eth2-val-tools --help 
 #eth2-val-tools --help && \
 #
 #cd ../ && \
