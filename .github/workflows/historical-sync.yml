@@ -47,12 +47,12 @@ jobs:
       - name: Setup 
         run: |
             pwd
-            cd ./reth/testing/it-test/github-action
+            cd ./testing/it-test/github-action
             ./setup.sh
 
       # Run private testnet 
       - name: Run testnet 
         run: |
             pwd
-            cd ./reth/testing/it-test/github-action
+            cd ./testing/it-test/github-action
             ./action.sh
