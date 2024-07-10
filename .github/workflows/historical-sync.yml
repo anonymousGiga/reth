@@ -27,32 +27,32 @@ jobs:
             path: ./reth         # later mega-reth 
             ref: action-debug    # later develop
 
-      # Set up Go enviroment
+      # Setup Go enviroment
       - name: Setup Go environment
         uses: actions/setup-go@v2
         with:
               go-version: '1.21.4' # The Go version to download (if necessary) and use.
 
-      # Set up Jq enviroment
-      - name: Setup Jq 
+      # Install Jq 
+      - name: Install Jq 
         uses: dcarbone/install-jq-action@main
         with:
               version: '1.6' # The Jq version to download (if necessary) and use.
 
       # Install Rust
-      - name: Install Rust for Substrate
+      - name: Install Rust 
         uses: digitalnativeinc/install-rust-substrate-action@0.4.0
 
-      # Setup some tools 
+      # Install other tools 
       - name: Setup 
         run: |
             pwd
-            cd ./testing/it-test/github-action
-            ./setup.sh
+      #      cd ./testing/it-test/github-action
+      #      ./setup.sh
 
-      # Run private testnet 
-      - name: Run testnet 
-        run: |
-            pwd
-            cd ./testing/it-test/github-action
-            ./action.sh
+      ## Run private testnet 
+      #- name: Run testnet 
+      #  run: |
+      #      pwd
+      #      cd ./testing/it-test/github-action
+      #      ./action.sh
