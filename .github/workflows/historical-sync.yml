@@ -48,6 +48,8 @@ jobs:
         run: |
             pwd
             ls
+            cd reth
+            ls
       #      cd ./testing/it-test/github-action
       #      ./setup.sh
 
