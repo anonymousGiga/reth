@@ -16,13 +16,12 @@ openssl rand -hex 32 | tr -d "\n" | tee ./jwt/jwtsecret
 cp jwt $BASE_DIR -rf && \
 
 # Install eth2-val-tools
-#git clone https://github.com/protolambda/eth2-val-tools.git && \
+git clone https://github.com/protolambda/eth2-val-tools.git && \
 cd eth2-val-tools && \
 git reset --hard 0d6d1ddb36479e73d7d876b29ac2d10ab3988e85 && \
 go build -o eth2-val-tools main.go && \
-ls
-#cp eth2-val-tools ~/.cargo/bin && \
-#eth2-val-tools --help 
+cp eth2-val-tools ~/.cargo/bin && \
+eth2-val-tools --help 
 #eth2-val-tools --help && \
 #
 #cd ../ && \
