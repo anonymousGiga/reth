@@ -21,6 +21,7 @@ cd eth2-val-tools && \
 git reset --hard 0d6d1ddb36479e73d7d876b29ac2d10ab3988e85 && \
 go build -o eth2-val-tools main.go && \
 cp eth2-val-tools ~/.cargo/bin && \
+eth2-val-tools --help && \
 
 cd ../ && \
 
@@ -30,6 +31,7 @@ cd eth2-testnet-genesis && \
 git reset --hard 4b3498476f14b872b43080eee319adea45286daf && \
 make && \
 cp eth2-testnet-genesis ~/.cargo/bin && \
+eth2-testnet-genesis --help && \
 
 cd ../ &&\
 
@@ -40,11 +42,11 @@ cp lighthouse  ~/.cargo/bin && \
 lighthouse --version  
 
 
-# Install reth
-cd ../../../ && \
-cargo build && \
-cp ./target/debug/reth ~/.cargo/bin
-echo "After build reth"
+## Install reth
+#cd ../../../ && \
+#cargo build && \
+#cp ./target/debug/reth ~/.cargo/bin
+#echo "After build reth"
 
 
 
