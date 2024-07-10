@@ -10,6 +10,21 @@ terminate_processes() {
 # Set error trap
 trap 'terminate_processes' ERR
 
+# Function to check if historical sync success
+assert_string_in_file() {
+  local file_path=$1
+  local search_string=$2
+
+  if grep -q "$search_string" "$file_path"; then
+    echo "Assertion passed: String found in the file."
+    return 0
+  else
+    echo "Assertion failed: String not found in the file."
+    return 1
+  fi
+}
+
+
 #1.Config
 ./config.sh
 ./update_el_genesis_json.sh                   # Update time of genesis.json
@@ -55,6 +70,10 @@ pids+=($!)
 wait ${pids[-1]}
 echo "after first historical sync"
 # Check if historical1.sh execution failed
+file_path="./his1.log"
+search_string="Finished stage pipeline_stages=12/12"
+assert_string_in_file "$file_path" "$search_string"
+
 if [ $? -ne 0 ]; then
   terminate_processes
 fi
@@ -65,6 +84,10 @@ pids+=($!)
 echo "second historical sync"
 
 # Check if historical2.sh execution failed
+file_path="./his2.log"
+search_string="Finished stage pipeline_stages=12/12"
+assert_string_in_file "$file_path" "$search_string"
+
 if [ $? -ne 0 ]; then
   terminate_processes
 fi
