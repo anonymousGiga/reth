@@ -3,11 +3,6 @@
 IP_ADDRESS=127.0.0.1
 BASE_DIR=${HOME}/testnet-net
 
-#ETH2_TESTNET_GENESIS_PATH=/home/andy/Source/work/historical-sync-debug/tools/eth2-testnet-genesis/eth2-testnet-genesis
-
-#REHT_PATH=/home/andy/Source/work/reth/target/debug/reth
-#LIGHTHOUSE_PATH=/home/andy/Tools/lighthouse/lighthouse
-
 CONFIGS_PATH=$BASE_DIR/network-configs
 JWT_PATH=$BASE_DIR/jwt
 KEYSTORE_PATH=$BASE_DIR/ks
