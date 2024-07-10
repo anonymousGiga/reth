@@ -1,16 +1,12 @@
 #!/bin/bash
 
-
-#1.Setup tools
-
-
-#2.Config
+#1.Config
 ./config.sh
 ./update_el_genesis_json.sh                   # Update time of genesis.json
 ./generate_validator_keystores.sh             # Generate keys
 
-#3.Start producer 
-duration=1h                                   # Set reth node duration time=1h
+#2.Start producer 
+duration=30m                                   # Set reth node duration time=30m
 
 timeout $duration bash start-reth1.sh &
 pids+=($!)
@@ -43,13 +39,13 @@ echo "start vc4"
 
 sleep 30s 
 
-#4.Historical sync test
+#3.Historical sync test
 ./historical1.sh  &
 pids+=($!)
 wait ${pids[-1]}
 echo "after first historical sync"
 
-#5.Historical sync test
+#4.Historical sync test
 ./historical2.sh  &
 pids+=($!)
 echo "second historical sync"
