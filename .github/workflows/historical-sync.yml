@@ -46,12 +46,8 @@ jobs:
       # Install other tools 
       - name: Setup 
         run: |
-            pwd
-            ls
-            cd reth
-            ls
-      #      cd ./testing/it-test/github-action
-      #      ./setup.sh
+            cd reth/testing/it-test/github-action
+            ./setup.sh
 
       ## Run private testnet 
       #- name: Run testnet 
