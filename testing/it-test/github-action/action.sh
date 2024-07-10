@@ -1,12 +1,22 @@
 #!/bin/bash
 
+# Function to terminate all processes and exit
+terminate_processes() {
+  echo "Error occurred. Terminating all processes..."
+  kill "${pids[@]}" >/dev/null 2>&1
+  exit 1
+}
+
+# Set error trap
+trap 'terminate_processes' ERR
+
 #1.Config
 ./config.sh
 ./update_el_genesis_json.sh                   # Update time of genesis.json
 ./generate_validator_keystores.sh             # Generate keys
 
 #2.Start producer 
-duration=30m                                   # Set reth node duration time=30m
+duration=20m                                   # Set reth node duration time=20m
 
 timeout $duration bash start-reth1.sh &
 pids+=($!)
@@ -44,11 +54,20 @@ sleep 30s
 pids+=($!)
 wait ${pids[-1]}
 echo "after first historical sync"
+# Check if historical1.sh execution failed
+if [ $? -ne 0 ]; then
+  terminate_processes
+fi
 
 #4.Historical sync test
 ./historical2.sh  &
 pids+=($!)
 echo "second historical sync"
+
+# Check if historical2.sh execution failed
+if [ $? -ne 0 ]; then
+  terminate_processes
+fi
 
 #5.Send txs
 

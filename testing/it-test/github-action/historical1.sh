@@ -24,7 +24,8 @@ echo $reth1_node
 
 BLOCK_NUMBER=10
 TIP=""
-while [ -z "$TIP" ] || [ "$TIP" == "null" ]; do
+#while [ -z "$TIP" ] || [ "$TIP" == "null" ]; do
+while [ -z "$TIP" ]; do
 	RES=$(curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["0x'$(printf "%x" $BLOCK_NUMBER)'", true],"id":1}' http://$IP_ADDRESS:${EL_RETH_1_HTTP_PORT})
 	TIP=$(echo $RES | jq -r '.result.hash')
         if [ "$TIP" == "null" ]; then
