@@ -22,10 +22,10 @@ reth1_node=$(curl --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[]
            | jq .result.enode | sed -e "s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/${IP_ADDRESS}/g" | sed 's/\"//g');
 echo $reth1_node
 
-BLOCK_NUMBER=10
+BLOCK_NUMBER=100
 TIP=""
-#while [ -z "$TIP" ] || [ "$TIP" == "null" ]; do
-while [ -z "$TIP" ]; do
+while [ -z "$TIP" ] || [ "$TIP" == "null" ]; do
+# while [ -z "$TIP" ]; do
 	RES=$(curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["0x'$(printf "%x" $BLOCK_NUMBER)'", true],"id":1}' http://$IP_ADDRESS:${EL_RETH_1_HTTP_PORT})
 	TIP=$(echo $RES | jq -r '.result.hash')
         if [ "$TIP" == "null" ]; then

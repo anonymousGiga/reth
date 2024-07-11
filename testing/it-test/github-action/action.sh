@@ -11,18 +11,18 @@ terminate_processes() {
 trap 'terminate_processes' ERR
 
 # Function to check if historical sync success
-assert_string_in_file() {
+assert_pipeline_finished() {
   local file_path=$1
-  local search_string=$2
 
-  if grep -q "$search_string" "$file_path"; then
-    echo "Assertion passed: String found in the file."
+  if grep -qE 'Finished stage.*pipeline_stages.*12/12' "$file_path"; then
+    echo "Assertion passed: Required line found in the file."
     return 0
   else
-    echo "Assertion failed: String not found in the file."
+    echo "Assertion failed: Required line not found in the file."
     return 1
   fi
 }
+
 
 
 #1.Config
@@ -31,7 +31,7 @@ assert_string_in_file() {
 ./generate_validator_keystores.sh             # Generate keys
 
 #2.Start producer 
-duration=20m                                   # Set reth node duration time=20m
+duration=5m                                   # Set reth node duration time=20m
 
 timeout $duration bash start-reth1.sh &
 pids+=($!)
@@ -71,8 +71,7 @@ wait ${pids[-1]}
 echo "after first historical sync"
 # Check if historical1.sh execution failed
 file_path="./his1.log"
-search_string="Finished stage pipeline_stages=12/12"
-assert_string_in_file "$file_path" "$search_string"
+assert_pipeline_finished "$file_path"
 
 if [ $? -ne 0 ]; then
   terminate_processes
@@ -85,8 +84,7 @@ echo "second historical sync"
 
 # Check if historical2.sh execution failed
 file_path="./his2.log"
-search_string="Finished stage pipeline_stages=12/12"
-assert_string_in_file "$file_path" "$search_string"
+assert_pipeline_finished "$file_path"
 
 if [ $? -ne 0 ]; then
   terminate_processes
@@ -98,6 +96,12 @@ fi
 
 #7. End
 wait "${pids[@]}"
+
+file_path="./his1.log"
+assert_pipeline_finished "$file_path"
+file_path="./his2.log"
+assert_pipeline_finished "$file_path"
+
 exit
 
 
