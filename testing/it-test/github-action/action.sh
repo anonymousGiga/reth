@@ -4,6 +4,7 @@
 terminate_processes() {
   echo "Error occurred. Terminating all processes..."
   kill "${pids[@]}" >/dev/null 2>&1
+  echo "Assertion failed: Historical sync error."
   exit 1
 }
 
@@ -22,8 +23,6 @@ assert_pipeline_finished() {
     return 1
   fi
 }
-
-
 
 #1.Config
 ./config.sh
@@ -67,7 +66,7 @@ echo "start vc2"
 sleep 5s
 
 #3.Historical sync test
-timeout $duration ./historical1.sh  &
+timeout $duration bash ./historical1.sh  &
 pids+=($!)
 wait ${pids[-1]}
 echo "after first historical sync"
@@ -80,7 +79,7 @@ if [ $? -ne 0 ]; then
 fi
 
 #4.Historical sync test
-timeout $duration ./historical2.sh  &
+timeout $duration bash ./historical2.sh  &
 pids+=($!)
 echo "second historical sync"
 
