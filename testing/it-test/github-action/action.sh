@@ -31,7 +31,7 @@ assert_pipeline_finished() {
 ./generate_validator_keystores.sh             # Generate keys
 
 #2.Start producer 
-duration=20m                                   # Set reth node duration time=20m
+duration=5m                                   # Set reth node duration time=20m
 
 timeout $duration bash start-reth1.sh &
 pids+=($!)
@@ -47,25 +47,27 @@ echo "sleep 1m"
 bash generate_cl_genesis_ssz.sh &
 pids+=($!)
 echo "generate ssz"
-sleep 30s
+sleep 10s
 
 timeout $duration bash start-lighthouse1.sh &
 pids+=($!)
+sleep 5s
 echo "start lighthouse1"
 timeout $duration bash start-lighthouse2.sh &
 pids+=($!)
+sleep 5s
 echo "start lighthouse2"
 timeout $duration bash start-vc1.sh &
 pids+=($!)
-echo "start vc3"
+echo "start vc1"
+sleep 5s
 timeout $duration bash start-vc2.sh &
 pids+=($!)
-echo "start vc4"
-
-sleep 30s 
+echo "start vc2"
+sleep 5s
 
 #3.Historical sync test
-./historical1.sh  &
+timeout $duration ./historical1.sh  &
 pids+=($!)
 wait ${pids[-1]}
 echo "after first historical sync"
@@ -78,7 +80,7 @@ if [ $? -ne 0 ]; then
 fi
 
 #4.Historical sync test
-./historical2.sh  &
+timeout $duration ./historical2.sh  &
 pids+=($!)
 echo "second historical sync"
 
