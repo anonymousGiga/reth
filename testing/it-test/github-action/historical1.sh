@@ -22,7 +22,7 @@ reth1_node=$(curl --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[]
            | jq .result.enode | sed -e "s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/${IP_ADDRESS}/g" | sed 's/\"//g');
 echo $reth1_node
 
-BLOCK_NUMBER=100
+BLOCK_NUMBER=10
 TIP=""
 while [ -z "$TIP" ] || [ "$TIP" == "null" ]; do
 # while [ -z "$TIP" ]; do
