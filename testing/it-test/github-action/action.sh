@@ -31,7 +31,7 @@ assert_pipeline_finished() {
 ./generate_validator_keystores.sh             # Generate keys
 
 #2.Start producer 
-duration=5m                                   # Set reth node duration time=20m
+duration=20m                                   # Set reth node duration time=20m
 
 timeout $duration bash start-reth1.sh &
 pids+=($!)
