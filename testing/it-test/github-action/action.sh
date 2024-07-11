@@ -81,6 +81,7 @@ fi
 #4.Historical sync test
 timeout $duration bash ./historical2.sh  &
 pids+=($!)
+wait ${pids[-1]}
 echo "second historical sync"
 
 # Check if historical2.sh execution failed
