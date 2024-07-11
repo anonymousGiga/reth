@@ -11,7 +11,7 @@ while true ; do
 	curl --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":1}' -H 'Content-Type: application/json' http://$IP_ADDRESS:${EL_RETH_1_HTTP_PORT};
 
 	if [ $? -ne 0 ]; then
-		sleep 1;
+		sleep 30;
 	else
 		break;
 	fi
